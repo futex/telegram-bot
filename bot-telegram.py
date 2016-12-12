@@ -10,6 +10,7 @@ import urllib2
 import feedparser
 import subprocess
 import ConfigParser
+import requests
 #import ipgeolocation
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -36,8 +37,15 @@ def mcstn(bot,update):
 def ip(bot,update, args):
     chat_id = update.message.chat_id
     #output = subprocess.Popen(["/home/pi/.local/bin/ipgeolocation.py", "-t" + args[0]], "|",  "sed", "-r" , "\"s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g\"", stdout=subprocess.PIPE).communicate()[0]
-    output = subprocess.Popen(["/home/pi/.local/bin/ipgeolocation.py", "-t" + args[0]], stdout=subprocess.PIPE).communicate()[0]
-    bot.sendMessage(chat_id=chat_id, text=output)
+    #output = subprocess.Popen(["/home/pi/.local/bin/ipgeolocation.py", "-t" + args[0]], stdout=subprocess.PIPE).communicate()[0]
+    loc = requests.get('https://ipapi.co/'+ args[0] + '/json/')
+
+    json_result = loc.json()
+    
+    result = "IP: " + str(json_result['ip']) + "\n" + "Country: " + json_result['country'] + "\n" + "Region: " + json_result['region'] + "\n" + "City: " + json_result['city'] + "\n" + "Postal: " + json_result['postal'] + "\n" + "Timezone: " + str(json_result['timezone']) + "\n" + "Latitude: " + str(json_result['latitude']) + "\n"  + "Longitude: " + str(json_result['longitude'])
+
+
+    bot.sendMessage(chat_id=chat_id, text=result)
 
 def vt(bot,update, args):
     chat_id = update.message.chat_id
@@ -81,9 +89,7 @@ def bonjour(bot, update):
     chat_id = update.message.chat_id
 
     madames = feedparser.parse("http://feeds2.feedburner.com/BonjourMadame")
-
     madame_du_jour = madames['entries'][0]['summary_detail']['value'].split('"')[1]
-
     filein = urllib2.urlopen(madame_du_jour)
     image = filein.read()
     filein.close()
@@ -104,10 +110,9 @@ def malware(bot, update, args):
         value= output.split(' ')[0]
         
         if value == "":
-            value = "unknown sample"
+            value = "Unknown sample"
 
         bot.sendMessage(chat_id=chat_id, text=value)
-
         output = subprocess.Popen(["rm", "/tmp/mal"], stdout=subprocess.PIPE).communicate()[0]
 
     except (IndexError, ValueError):
