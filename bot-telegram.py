@@ -4,14 +4,13 @@
 import r2pipe
 import logging
 import urllib
+import urllib2
 import pydot
 import os
-import urllib2
 import feedparser
 import subprocess
 import ConfigParser
 import requests
-#import ipgeolocation
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from random import *
