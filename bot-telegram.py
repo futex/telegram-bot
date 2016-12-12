@@ -9,12 +9,17 @@ import os
 import urllib2
 import feedparser
 import subprocess
+import ConfigParser
+#import ipgeolocation
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from random import *
 from datetime import datetime
 
-ID = ""
+
+Config = ConfigParser.ConfigParser()
+Config.read("./config.conf")
+ID = Config.get("GENERAL", "ID")
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.DEBUG)
@@ -30,12 +35,13 @@ def mcstn(bot,update):
 
 def ip(bot,update, args):
     chat_id = update.message.chat_id
+    #output = subprocess.Popen(["/home/pi/.local/bin/ipgeolocation.py", "-t" + args[0]], "|",  "sed", "-r" , "\"s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g\"", stdout=subprocess.PIPE).communicate()[0]
     output = subprocess.Popen(["/home/pi/.local/bin/ipgeolocation.py", "-t" + args[0]], stdout=subprocess.PIPE).communicate()[0]
     bot.sendMessage(chat_id=chat_id, text=output)
 
 def vt(bot,update, args):
     chat_id = update.message.chat_id
-    output = subprocess.Popen(["/home/pi/Documents/Sources/Python/vt-tools/vthash2.py", args[0]], stdout=subprocess.PIPE).communicate()[0]
+    output = subprocess.Popen(["/home/pi/Documents/Sources/Python/vt-tools/vthash.py", args[0]], stdout=subprocess.PIPE).communicate()[0]
     bot.sendMessage(chat_id=chat_id, text=output)
 
 def free(bot,update):
@@ -76,16 +82,6 @@ def bonjour(bot, update):
 
     madames = feedparser.parse("http://feeds2.feedburner.com/BonjourMadame")
 
-    #for madame_du_jour in madames['entries']:
-    #    adresse_madame_du_jour = madame_du_jour['summary_detail']['value'].split('"')[1]
-    #    jour = str(datetime(*madame_du_jour.updated_parsed[:3])).split(' ')[0]
-    #    if not os.path.isfile(jour+".jpg"):
-    #        filein = urllib2.urlopen(adresse_madame_du_jour)
-    #        image = filein.read()
-    #        filein.close()
-    #        fileout = open("/tmp/" + jour + ".jpg",'w+b')
-    #        fileout.write(image)
-    #        fileout.close()
     madame_du_jour = madames['entries'][0]['summary_detail']['value'].split('"')[1]
 
     filein = urllib2.urlopen(madame_du_jour)
