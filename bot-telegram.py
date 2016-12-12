@@ -56,7 +56,7 @@ def uprecords(bot,update):
 
 def jmlp(bot,update):
     chat_id = update.message.chat_id
-    random_number= randint(1,3)
+    random_number= randint(1,4)
     bot.sendPhoto(chat_id=chat_id, photo=open("/home/pi/Documents/Images/Meme/jm" + str(random_number) + ".jpeg","rb"))
 
 def mmga(bot,update):
