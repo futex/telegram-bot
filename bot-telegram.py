@@ -14,7 +14,7 @@ import subprocess
 import ConfigParser
 import magic
 import hashlib
-import Mirai
+import mirai
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from random import *
@@ -145,7 +145,7 @@ def malware(bot, update, args):
                     bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
 
                     if 'mirai' in value.lower():
-                        config = Mirai.get_config(maliciousFile)
+                        config = mirai.get_config(maliciousFile)
                         bot.sendMessage(chat_id=chat_id, text=config)
 
                     os.system("rm " + maliciousFile)
@@ -163,9 +163,9 @@ def malware(bot, update, args):
                 value = "Unknown sample"
 
             bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
-            
+
             if 'mirai' in value.lower():
-                config = Mirai.get_config(filepath)
+                config = mirai.get_config(filepath)
                 bot.sendMessage(chat_id=chat_id, text=config)
             
             os.system("rm " + filepath)
