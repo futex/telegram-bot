@@ -145,7 +145,7 @@ def malware(bot, update, args):
                     bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
 
                     if 'mirai' in value.lower():
-                        config = Mirai.get_config(malwareFile)
+                        config = Mirai.get_config(maliciousFile)
                         bot.sendMessage(chat_id=chat_id, text=config)
 
                     os.system("rm " + maliciousFile)
@@ -165,7 +165,7 @@ def malware(bot, update, args):
             bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
             
             if 'mirai' in value.lower():
-                config = Mirai.get_config(malwareFile)
+                config = Mirai.get_config(filepath)
                 bot.sendMessage(chat_id=chat_id, text=config)
             
             os.system("rm " + filepath)
