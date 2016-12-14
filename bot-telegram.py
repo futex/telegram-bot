@@ -163,6 +163,11 @@ def malware(bot, update, args):
                 value = "Unknown sample"
 
             bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
+            
+            if 'mirai' in value.lower():
+                config = Mirai.get_config(malwareFile)
+                bot.sendMessage(chat_id=chat_id, text=config)
+            
             os.system("rm " + filepath)
 
     except (IndexError, ValueError):
