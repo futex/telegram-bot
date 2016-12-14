@@ -14,6 +14,7 @@ import subprocess
 import ConfigParser
 import magic
 import hashlib
+import Mirai
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from random import *
@@ -128,7 +129,7 @@ def malware(bot, update, args):
                     bot.sendMessage(chat_id=chat_id, text="Find payload: " + clean_url)
 
                     maliciousFile = draft_dir + "/" + os.path.basename(clean_url)
-                    
+
                     os.system("wget -q " + clean_url + " -O " +  maliciousFile )
 
                     command = "/usr/local/bin/yara -r /home/pi/Documents/Linux-malware.yar %s" % maliciousFile
@@ -136,12 +137,18 @@ def malware(bot, update, args):
                     output = subprocess.Popen(command , shell=True, stdout=subprocess.PIPE).communicate()[0]
                     hashmd5 = hashlib.md5(open(maliciousFile, 'rb').read()).hexdigest()
                     #output = subprocess.Popen(["/usr/bin/yara", "-r", "/home/pi/Documents/Linux-malware.yar " + maliciousFile], stdout=subprocess.PIPE).communicate()[0]
-                    os.system("rm " + maliciousFile)
+                    
                     value = output.split(' ')[0]
                     if value == "":
                         value = "Unknown sample"
 
                     bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
+
+                    if 'mirai' in value.lower():
+                        config = Mirai.get_config(malwareFile)
+                        bot.sendMessage(chat_id=chat_id, text=config)
+
+                    os.system("rm " + maliciousFile)
 
             else:
                 bot.sendMessage(chat_id=chat_id, text="Can't find url in the file")
