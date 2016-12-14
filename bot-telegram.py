@@ -5,12 +5,15 @@ import r2pipe
 import logging
 import urllib
 import urllib2
+import requests
 import pydot
 import os
+import re
 import feedparser
 import subprocess
 import ConfigParser
-import requests
+import magic
+import hashlib
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from random import *
@@ -35,7 +38,6 @@ def mcstn(bot,update):
 
 def ip(bot,update, args):
     chat_id = update.message.chat_id
-    #output = subprocess.Popen(["/home/pi/.local/bin/ipgeolocation.py", "-t" + args[0]], "|",  "sed", "-r" , "\"s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g\"", stdout=subprocess.PIPE).communicate()[0]
     #output = subprocess.Popen(["/home/pi/.local/bin/ipgeolocation.py", "-t" + args[0]], stdout=subprocess.PIPE).communicate()[0]
     loc = requests.get('https://ipapi.co/'+ args[0] + '/json/')
 
@@ -103,16 +105,58 @@ def help(bot, update):
 
 def malware(bot, update, args):
     chat_id = update.message.chat_id
-    try:
-        urllib.urlretrieve (args[0], "/tmp/mal")
-        output = subprocess.Popen(["/usr/bin/yara", "-r", "/home/pi/Documents/Linux-malware.yar", "/tmp/mal"], stdout=subprocess.PIPE).communicate()[0]
-        value= output.split(' ')[0]
-        
-        if value == "":
-            value = "Unknown sample"
 
-        bot.sendMessage(chat_id=chat_id, text=value)
-        output = subprocess.Popen(["rm", "/tmp/mal"], stdout=subprocess.PIPE).communicate()[0]
+    filepath = "/tmp/mal"
+    
+    draft_dir = "/tmp/tmp_malw"
+
+    try:
+        urllib.urlretrieve (args[0], filepath)
+
+        if (magic.from_file(filepath, mime=True) == "text/x-shellscript" or magic.from_file(filepath, mime=True) == "text/plain"):
+            f = open(filepath, "r")
+            toto=f.read()
+
+            urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', toto)
+    
+            if urls != "":
+                
+                for url in urls:
+                    
+                    clean_url = re.sub('[!@#$;&|]', '', url)
+                    
+                    bot.sendMessage(chat_id=chat_id, text="Find payload: " + clean_url)
+
+                    maliciousFile = draft_dir + "/" + os.path.basename(clean_url)
+                    
+                    os.system("wget -q " + clean_url + " -O " +  maliciousFile )
+
+                    command = "/usr/local/bin/yara -r /home/pi/Documents/Linux-malware.yar %s" % maliciousFile
+
+                    output = subprocess.Popen(command , shell=True, stdout=subprocess.PIPE).communicate()[0]
+                    hashmd5 = hashlib.md5(open(maliciousFile, 'rb').read()).hexdigest()
+                    #output = subprocess.Popen(["/usr/bin/yara", "-r", "/home/pi/Documents/Linux-malware.yar " + maliciousFile], stdout=subprocess.PIPE).communicate()[0]
+                    os.system("rm " + maliciousFile)
+                    value = output.split(' ')[0]
+                    if value == "":
+                        value = "Unknown sample"
+
+                    bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
+
+            else:
+                bot.sendMessage(chat_id=chat_id, text="Can't find url in the file")
+
+        elif (magic.from_file(filepath, mime=True) == "application/x-executable"):
+
+            output = subprocess.Popen(["/usr/local/bin/yara", "-r", "/home/pi/Documents/Linux-malware.yar", filepath], stdout=subprocess.PIPE).communicate()[0]
+            hashmd5 = hashlib.md5(open(filepath, 'rb').read()).hexdigest()
+            value = output.split(' ')[0]
+            
+            if value == "":
+                value = "Unknown sample"
+
+            bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
+            os.system("rm " + filepath)
 
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /malware <URL>')
