@@ -15,6 +15,7 @@ import ConfigParser
 import magic
 import hashlib
 import mirai
+import xorddos
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from random import *
@@ -146,7 +147,12 @@ def malware(bot, update, args):
 
                     if 'mirai' in value.lower():
                         config = mirai.get_config(maliciousFile)
-                        bot.sendMessage(chat_id=chat_id, text=config)
+                    elif 'xor_ddos' in value.lower():
+                        config = xorddos.get_config(maliciousFile)
+                    else:   
+                        config="Impossible to decrypt the configuration"
+
+                    bot.sendMessage(chat_id=chat_id, text="Decrypted config:" + config)
 
                     os.system("rm " + maliciousFile)
 
@@ -165,8 +171,13 @@ def malware(bot, update, args):
             bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
 
             if 'mirai' in value.lower():
-                config = mirai.get_config(filepath)
-                bot.sendMessage(chat_id=chat_id, text=config)
+                        config = mirai.get_config(filepath)
+            elif 'xor_ddos' in value.lower():
+                config = xorddos.get_config(filepath)
+            else:   
+                config="Impossible to decrypt the configuration"
+
+            bot.sendMessage(chat_id=chat_id, text="Decrypted config:" + config)
             
             os.system("rm " + filepath)
 
