@@ -4,7 +4,6 @@
 import r2pipe
 import logging
 import urllib
-import urllib2
 import requests
 import pydot
 import os
@@ -14,8 +13,10 @@ import subprocess
 import ConfigParser
 import magic
 import hashlib
+
 import mirai
 import xorddos
+import gafgyt
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from random import *
@@ -67,7 +68,7 @@ def uprecords(bot,update):
 
 def jmlp(bot,update):
     chat_id = update.message.chat_id
-    random_number= randint(1,4)
+    random_number= randint(1,5)
     bot.sendPhoto(chat_id=chat_id, photo=open("/home/pi/Documents/Images/Meme/jm" + str(random_number) + ".jpeg","rb"))
 
 def mmga(bot,update):
@@ -76,34 +77,66 @@ def mmga(bot,update):
 
 def boobs(bot,update):
     chat_id = update.message.chat_id
+    boobs_path = "/tmp/boobs"
     number = randrange(7630)
     url = 'http://media.oboobs.ru/boobs/0%s.jpg' % (str(number))
     
-    filein = urllib2.urlopen(url)
-    image = filein.read()
-    filein.close()
-    fileout = open("/tmp/boobs",'w+b')
-    fileout.write(image)
-    fileout.close()
+    r = requests.get(url, stream=True)
 
-    bot.sendPhoto(chat_id=chat_id, photo=open("/tmp/boobs","rb"))
+    if r.status_code == 200:
+        with open(boobs_path, 'wb') as f:
+            f.write(r.content)
+
+    bot.sendPhoto(chat_id=chat_id, photo=open(boobs_path,"rb"))
 
 def bonjour(bot, update):
     chat_id = update.message.chat_id
-
+    bjr_path = "/tmp/bonjour.jpg"
     madames = feedparser.parse("http://feeds2.feedburner.com/BonjourMadame")
     madame_du_jour = madames['entries'][0]['summary_detail']['value'].split('"')[1]
-    filein = urllib2.urlopen(madame_du_jour)
-    image = filein.read()
-    filein.close()
-    fileout = open("/tmp/bonjour.jpg",'w+b')
-    fileout.write(image)
-    fileout.close()
 
-    bot.sendPhoto(chat_id=chat_id, photo=open("/tmp/bonjour.jpg","rb"))
+    r = requests.get(madame_du_jour, stream=True)
 
-def help(bot, update):
+    if r.status_code == 200:
+        with open(bjr_path, 'wb') as f:
+            f.write(r.content)
+
+    bot.sendPhoto(chat_id=chat_id, photo=open(bjr_path,"rb"))
+
+def help(bot, update, maliciousFile):
     update.message.reply_text('Help!')
+
+def check_malware(bot, update, maliciousFile):
+    chat_id = update.message.chat_id
+
+    try:
+        output = subprocess.Popen(["/usr/local/bin/yara", "-r", "/home/pi/Documents/Linux-malware.yar", maliciousFile], stdout=subprocess.PIPE).communicate()[0]
+        hashmd5 = hashlib.md5(open(maliciousFile, 'rb').read()).hexdigest()
+        value = output.split(' ')[0]
+            
+        if value == "":
+            value = "Unknown sample"
+
+        bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
+
+        if 'mirai' in value.lower():
+            config = mirai.get_config(maliciousFile)
+        elif 'xor_ddos' in value.lower():
+            config = xorddos.get_config(maliciousFile)
+        elif 'gafgyt' in value.lower():
+            config = gafgyt.get_config(maliciousFile)
+        else:   
+            config="Impossible to decrypt the configuration"
+
+        bot.sendMessage(chat_id=chat_id, text="Decrypted config: " + config)
+
+        os.system("rm " + maliciousFile)
+
+    except (IndexError, ValueError):
+        update.message.reply_text('IndexError: Problem to decrypt the configuration.')
+    except (IOError):
+        update.message.reply_text('IOError: Problem to decrypt the configuration.')
+
 
 def malware(bot, update, args):
     chat_id = update.message.chat_id
@@ -112,79 +145,36 @@ def malware(bot, update, args):
     
     draft_dir = "/tmp/tmp_malw"
 
-    try:
-        urllib.urlretrieve (args[0], filepath)
+    urllib.urlretrieve (args[0], filepath)
 
-        if (magic.from_file(filepath, mime=True) == "text/x-shellscript" or magic.from_file(filepath, mime=True) == "text/plain"):
-            f = open(filepath, "r")
-            toto=f.read()
+    if (magic.from_file(filepath, mime=True) == "text/x-shellscript" or magic.from_file(filepath, mime=True) == "text/plain"):
+        f = open(filepath, "r")
+        toto=f.read()
 
-            urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', toto)
+        urls = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', toto)
     
-            if urls != "":
+        if urls != "":
                 
-                for url in urls:
+            for url in urls:
                     
-                    clean_url = re.sub('[!@#$;&|]', '', url)
+                clean_url = re.sub('[!@#$;&|]', '', url)
                     
-                    bot.sendMessage(chat_id=chat_id, text="Find payload: " + clean_url)
+                bot.sendMessage(chat_id=chat_id, text="Find payload: " + clean_url)
 
-                    maliciousFile = draft_dir + "/" + os.path.basename(clean_url)
+                maliciousFile = draft_dir + "/" + os.path.basename(clean_url)
 
-                    os.system("wget -q " + clean_url + " -O " +  maliciousFile )
+                os.system("wget -q " + clean_url + " -O " +  maliciousFile )
 
-                    command = "/usr/local/bin/yara -r /home/pi/Documents/Linux-malware.yar %s" % maliciousFile
+                check_malware(bot, update, maliciousFile)
 
-                    output = subprocess.Popen(command , shell=True, stdout=subprocess.PIPE).communicate()[0]
-                    hashmd5 = hashlib.md5(open(maliciousFile, 'rb').read()).hexdigest()
-                    #output = subprocess.Popen(["/usr/bin/yara", "-r", "/home/pi/Documents/Linux-malware.yar " + maliciousFile], stdout=subprocess.PIPE).communicate()[0]
-                    
-                    value = output.split(' ')[0]
-                    if value == "":
-                        value = "Unknown sample"
+        else:
+            bot.sendMessage(chat_id=chat_id, text="Can't find url in the file")
 
-                    bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
+    elif (magic.from_file(filepath, mime=True) == "application/x-executable"):
 
-                    if 'mirai' in value.lower():
-                        config = mirai.get_config(maliciousFile)
-                    elif 'xor_ddos' in value.lower():
-                        config = xorddos.get_config(maliciousFile)
-                    else:   
-                        config="Impossible to decrypt the configuration"
+        check_malware(bot, update, filepath)
 
-                    bot.sendMessage(chat_id=chat_id, text="Decrypted config:" + config)
 
-                    os.system("rm " + maliciousFile)
-
-            else:
-                bot.sendMessage(chat_id=chat_id, text="Can't find url in the file")
-
-        elif (magic.from_file(filepath, mime=True) == "application/x-executable"):
-
-            output = subprocess.Popen(["/usr/local/bin/yara", "-r", "/home/pi/Documents/Linux-malware.yar", filepath], stdout=subprocess.PIPE).communicate()[0]
-            hashmd5 = hashlib.md5(open(filepath, 'rb').read()).hexdigest()
-            value = output.split(' ')[0]
-            
-            if value == "":
-                value = "Unknown sample"
-
-            bot.sendMessage(chat_id=chat_id, text=value + " MD5: " + hashmd5)
-
-            if 'mirai' in value.lower():
-                        config = mirai.get_config(filepath)
-            elif 'xor_ddos' in value.lower():
-                config = xorddos.get_config(filepath)
-            else:   
-                config="Impossible to decrypt the configuration"
-
-            bot.sendMessage(chat_id=chat_id, text="Decrypted config:" + config)
-            
-            os.system("rm " + filepath)
-
-    except (IndexError, ValueError):
-        update.message.reply_text('Usage: /malware <URL>')
-    except (IOError):
-        update.message.reply_text('URL down')
 
 def send_url(bot, update, args):
     chat_id = update.message.chat_id
