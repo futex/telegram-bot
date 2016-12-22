@@ -68,8 +68,13 @@ def uprecords(bot,update):
 
 def jmlp(bot,update):
     chat_id = update.message.chat_id
-    random_number= randint(1,5)
+    random_number= randint(1,8)
     bot.sendPhoto(chat_id=chat_id, photo=open("/home/pi/Documents/Images/Meme/jm" + str(random_number) + ".jpeg","rb"))
+
+def nesp(bot,update):
+    chat_id = update.message.chat_id
+    random_number= randint(1,8)
+    bot.sendPhoto(chat_id=chat_id, photo=open("/home/pi/Documents/Images/Meme/jm1.jpeg","rb"))
 
 def mmga(bot,update):
     chat_id = update.message.chat_id
@@ -210,6 +215,7 @@ def main():
     dp.add_handler(CommandHandler("jmlp", jmlp))
     dp.add_handler(CommandHandler("mmga", mmga))
     dp.add_handler(CommandHandler("free", free))
+    dp.add_handler(CommandHandler("nesp", nesp))
     dp.add_handler(CommandHandler("uprecords", uprecords))
     dp.add_handler(CommandHandler("malware", malware, pass_args=True))
     dp.add_handler(CommandHandler("ip", ip, pass_args=True))
