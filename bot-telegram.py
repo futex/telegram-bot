@@ -68,7 +68,7 @@ def uprecords(bot,update):
 
 def jmlp(bot,update):
     chat_id = update.message.chat_id
-    random_number= randint(1,8)
+    random_number= randint(1,14)
     bot.sendPhoto(chat_id=chat_id, photo=open("/home/pi/Documents/Images/Meme/jm" + str(random_number) + ".jpeg","rb"))
 
 def nesp(bot,update):
