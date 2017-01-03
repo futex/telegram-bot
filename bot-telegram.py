@@ -207,11 +207,24 @@ def main():
 
     dp = updater.dispatcher
 
+    # bonjour - bonjour madame
+    # boobs - boobs
+    # mcstn - mcstn
+    # jmlp - quote
+    # nesp - n'est ce pas 
+    # mmga - mmga 
+    # free - menory check
+    # uprecords - boot time
+    # malware - malware analysis
+    # ip - ip info
+    # vt - check a hash on virustotal
+        
+
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("bonjour", bonjour))
-    dp.add_handler(CommandHandler("mcstn", mcstn))
     dp.add_handler(CommandHandler("boobs", boobs))
+    dp.add_handler(CommandHandler("mcstn", mcstn))
     dp.add_handler(CommandHandler("jmlp", jmlp))
     dp.add_handler(CommandHandler("mmga", mmga))
     dp.add_handler(CommandHandler("free", free))
@@ -231,3 +244,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
