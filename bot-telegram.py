@@ -43,12 +43,9 @@ def mcstn(bot,update):
 
 def bitcoin(bot,update):
     chat_id = update.message.chat_id
-
-    amt = 1
     
-    url = "https://api.coindesk.com/v1/bpi/currentprice.json"
-
-    r =requests.get(url, stream=True)
+    r =requests.get("https://api.coindesk.com/v1/bpi/currentprice.json", stream=True)
+    
     data = json.loads(r.content)
     
     conversion_dollar = data['bpi']['USD']['rate_float']
