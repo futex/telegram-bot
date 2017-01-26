@@ -53,7 +53,7 @@ def ip(bot,update, args):
 
 def vt(bot,update, args):
     chat_id = update.message.chat_id
-    output = subprocess.Popen(["/home/pi/Documents/Sources/Python/vt-tools/vthash.py", args[0]], stdout=subprocess.PIPE).communicate()[0]
+    output = subprocess.Popen(["/home/futex/Documents/Sources/Python/vt-tools/vthash.py", args[0]], stdout=subprocess.PIPE).communicate()[0]
     bot.sendMessage(chat_id=chat_id, text=output)
 
 def free(bot,update):
@@ -69,16 +69,16 @@ def uprecords(bot,update):
 def jmlp(bot,update):
     chat_id = update.message.chat_id
     random_number= randint(1,14)
-    bot.sendPhoto(chat_id=chat_id, photo=open("/home/pi/Documents/Images/Meme/jm" + str(random_number) + ".jpeg","rb"))
+    bot.sendPhoto(chat_id=chat_id, photo=open("/home/futex/Documents/Images/Meme/jm" + str(random_number) + ".jpeg","rb"))
 
 def nesp(bot,update):
     chat_id = update.message.chat_id
     random_number= randint(1,8)
-    bot.sendPhoto(chat_id=chat_id, photo=open("/home/pi/Documents/Images/Meme/jm1.jpeg","rb"))
+    bot.sendPhoto(chat_id=chat_id, photo=open("/home/futex/Documents/Images/Meme/jm1.jpeg","rb"))
 
 def mmga(bot,update):
     chat_id = update.message.chat_id
-    bot.sendPhoto(chat_id=chat_id, photo=open("/home/pi/Documents/Images/Meme/MakeMalwareGreatAgain.jpg","rb"))
+    bot.sendPhoto(chat_id=chat_id, photo=open("/home/futex/Documents/Images/Meme/MakeMalwareGreatAgain.jpg","rb"))
 
 def boobs(bot,update):
     chat_id = update.message.chat_id
@@ -115,7 +115,7 @@ def check_malware(bot, update, maliciousFile):
     chat_id = update.message.chat_id
 
     try:
-        output = subprocess.Popen(["/usr/local/bin/yara", "-r", "/home/pi/Documents/Linux-malware.yar", maliciousFile], stdout=subprocess.PIPE).communicate()[0]
+        output = subprocess.Popen(["/usr/bin/yara", "-r", "/home/futex/Documents/Linux-malware.yar", maliciousFile], stdout=subprocess.PIPE).communicate()[0]
         hashmd5 = hashlib.md5(open(maliciousFile, 'rb').read()).hexdigest()
         value = output.split(' ')[0]
             
@@ -138,9 +138,9 @@ def check_malware(bot, update, maliciousFile):
         os.system("rm " + maliciousFile)
 
     except (IndexError, ValueError):
-        update.message.reply_text('IndexError: Problem to decrypt the configuration.')
+        update.message.reply_text('IndexError: Problem to decrypt the configuration.' + ValueError)
     except (IOError):
-        update.message.reply_text('IOError: Problem to decrypt the configuration.')
+        update.message.reply_text('IOError: Problem to decrypt the configuration.' + ValueError)
 
 
 def malware(bot, update, args):
