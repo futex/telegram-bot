@@ -13,6 +13,8 @@ import subprocess
 import ConfigParser
 import magic
 import hashlib
+import json
+import random
 
 import mirai
 import xorddos
@@ -38,6 +40,23 @@ def start(bot, update):
 def mcstn(bot,update):
     chat_id = update.message.chat_id
     bot.sendMessage(chat_id=chat_id, text="Mes couilles sur ton nez, t'aura l'air d'un dindon!")
+
+def bitcoin(bot,update):
+    chat_id = update.message.chat_id
+
+    amt = 1
+    
+    url = "https://api.coindesk.com/v1/bpi/currentprice.json"
+
+    r =requests.get(url, stream=True)
+    data = json.loads(r.content)
+    
+    conversion_dollar = data['bpi']['USD']['rate_float']
+    conversion_euro = data['bpi']['EUR']['rate_float']
+
+    value = "1 Bitcoin = %s EURO or %s USD" % (conversion_euro, conversion_dollar)
+
+    bot.sendMessage(chat_id=chat_id, text=value)
 
 def ip(bot,update, args):
     chat_id = update.message.chat_id
@@ -218,10 +237,12 @@ def main():
     # malware - malware analysis
     # ip - ip info
     # vt - check a hash on virustotal
+    # bitcoin - check the bitcoin value
         
 
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
+    dp.add_handler(CommandHandler("bitcoin", bitcoin))
     dp.add_handler(CommandHandler("bonjour", bonjour))
     dp.add_handler(CommandHandler("boobs", boobs))
     dp.add_handler(CommandHandler("mcstn", mcstn))
