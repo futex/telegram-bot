@@ -28,6 +28,13 @@ from datetime import datetime
 Config = ConfigParser.ConfigParser()
 Config.read("./config.conf")
 ID = Config.get("GENERAL", "ID")
+YARA_PATH = Config.get("GENERAL", "YARA_PATH")
+YARA_RULES_PATH = Config.get("GENERAL", "YARA_RULES_PATH")
+JM_PATH = Config.get("GENERAL", "JM_PATH")
+NESP_PATH = Config.get("GENERAL", "NESP_PATH")
+CPF_PATH = Config.get("GENERAL", "CPF_PATH")
+VTHASH_PATH = Config.get("GENERAL", "VTHASH_PATH")
+
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.DEBUG)
@@ -69,7 +76,7 @@ def ip(bot,update, args):
 
 def vt(bot,update, args):
     chat_id = update.message.chat_id
-    output = subprocess.Popen(["/home/futex/Documents/Sources/Python/vt-tools/vthash.py", args[0]], stdout=subprocess.PIPE).communicate()[0]
+    output = subprocess.Popen([VTHASH_PATH, args[0]], stdout=subprocess.PIPE).communicate()[0]
     bot.sendMessage(chat_id=chat_id, text=output)
 
 def free(bot,update):
@@ -85,16 +92,19 @@ def uprecords(bot,update):
 def jmlp(bot,update):
     chat_id = update.message.chat_id
     random_number= randint(1,14)
-    bot.sendPhoto(chat_id=chat_id, photo=open("/home/futex/Documents/Images/Meme/jm" + str(random_number) + ".jpeg","rb"))
+    bot.sendPhoto(chat_id=chat_id, photo=open(JM_PATH + "jm" + str(random_number) + ".jpeg","rb"))
 
 def nesp(bot,update):
     chat_id = update.message.chat_id
-    random_number= randint(1,8)
-    bot.sendPhoto(chat_id=chat_id, photo=open("/home/futex/Documents/Images/Meme/jm1.jpeg","rb"))
+    bot.sendPhoto(chat_id=chat_id, photo=open(NESP_PATH,"rb"))
+
+def cpf(bot,update):
+    chat_id = update.message.chat_id
+    bot.sendPhoto(chat_id=chat_id, photo=open(CPF_PATH,"rb"))
 
 def mmga(bot,update):
     chat_id = update.message.chat_id
-    bot.sendPhoto(chat_id=chat_id, photo=open("/home/futex/Documents/Images/Meme/MakeMalwareGreatAgain.jpg","rb"))
+    bot.sendPhoto(chat_id=chat_id, photo=open(MMGA_PATH,"rb"))
 
 def boobs(bot,update):
     chat_id = update.message.chat_id
@@ -131,7 +141,8 @@ def check_malware(bot, update, maliciousFile):
     chat_id = update.message.chat_id
 
     try:
-        output = subprocess.Popen(["/usr/bin/yara", "-r", "/home/futex/Documents/Linux-malware.yar", maliciousFile], stdout=subprocess.PIPE).communicate()[0]
+        
+        output = subprocess.Popen([YARA_PATH, "-r", YARA_RULES_PATH + "Linux-malware.yar", maliciousFile], stdout=subprocess.PIPE).communicate()[0]
         hashmd5 = hashlib.md5(open(maliciousFile, 'rb').read()).hexdigest()
         value = output.split(' ')[0]
             
@@ -158,6 +169,44 @@ def check_malware(bot, update, maliciousFile):
     except (IOError):
         update.message.reply_text('IOError: Problem to decrypt the configuration.' + ValueError)
 
+def yara(bot, update, args):
+    chat_id = update.message.chat_id
+
+    filepath = "/tmp/mal"
+
+    draft_dir = "/tmp/tmp_malw"
+
+    try:
+
+        remote_file = args[0]
+
+        urllib.urlretrieve (remote_file, filepath)
+
+        output = subprocess.Popen([YARA_PATH, "-r", YARA_RULES_PATH + "rules/*", filepath], stdout=subprocess.PIPE).communicate()[0]
+    
+        value = output.split(' ')[0]
+            
+        if value == "":
+            value = "Unknown sample"
+
+    except Exception as e:
+        update.message.reply_text('Exception: %s' % e )
+
+    bot.sendMessage(chat_id=chat_id, text=value)
+
+
+def shodan(bot,update, args):
+    chat_id = update.message.chat_id
+    
+    try:
+       
+        #TODO add .replace("[.]",".") to args
+        output = subprocess.Popen(["shodan"] + args, stdout=subprocess.PIPE).communicate()[0]
+
+        bot.sendMessage(chat_id=chat_id, text=output.replace(".","[.]"))
+
+    except Exception as e:
+        update.message.reply_text('Exception: %s' % e )
 
 def malware(bot, update, args):
     chat_id = update.message.chat_id
@@ -227,11 +276,14 @@ def main():
     # boobs - boobs
     # mcstn - mcstn
     # jmlp - quote
-    # nesp - n'est ce pas 
+    # nesp - n'est ce pas
+    # cpf - c'est pas faux
     # mmga - mmga 
     # free - menory check
     # uprecords - boot time
     # malware - malware analysis
+    # yara - yara check
+    # shodan - shodan search
     # ip - ip info
     # vt - check a hash on virustotal
     # bitcoin - check the bitcoin value
@@ -247,8 +299,11 @@ def main():
     dp.add_handler(CommandHandler("mmga", mmga))
     dp.add_handler(CommandHandler("free", free))
     dp.add_handler(CommandHandler("nesp", nesp))
+    dp.add_handler(CommandHandler("cpf", cpf))
     dp.add_handler(CommandHandler("uprecords", uprecords))
     dp.add_handler(CommandHandler("malware", malware, pass_args=True))
+    dp.add_handler(CommandHandler("yara", yara, pass_args=True))
+    dp.add_handler(CommandHandler("shodan", shodan, pass_args=True))
     dp.add_handler(CommandHandler("ip", ip, pass_args=True))
     dp.add_handler(CommandHandler("vt", vt, pass_args=True))
     dp.add_handler(CommandHandler("send_url", send_url, pass_args=True))
